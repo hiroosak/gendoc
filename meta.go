@@ -6,17 +6,15 @@ import (
 )
 
 type Meta struct {
-	Title       string   `json:"title"`
-	BaseURL     string   `json:"base_url"`
-	ContentType string   `json:"content_type"`
-	Headers     []string `json:"headers"`
+	Title   string   `json:"title"`
+	BaseURL string   `json:"base_url"`
+	Headers []string `json:"headers"`
 }
 
 func readMeta(path string) (Meta, error) {
 	meta := Meta{
-		Title:       "API Document",
-		BaseURL:     "http://localhost",
-		ContentType: "application/json",
+		Title:   "API Document",
+		BaseURL: "http://localhost",
 		Headers: []string{
 			"Content-Type: application/json",
 		},

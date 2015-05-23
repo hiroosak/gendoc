@@ -51,7 +51,6 @@ $ gendoc doc -src ./src -meta meta.json -overview overview.html > docs.html
 {
   "title": "API Title",
   "base_url": "http://localhost/",
-  "content_type": "application/json",
   "headers": [
     "X-Service-Token: AAA"
   ]
