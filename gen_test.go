@@ -16,14 +16,16 @@ func TestGenerateJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srcfile := path.Join(src, "u.yaml")
-	if err := ioutil.WriteFile(srcfile, []byte(schemaTmpl), 0755); err != nil {
+	srcfile := path.Join(src, "user.yaml")
+	w := renderScaffold("user")
+
+	if err := ioutil.WriteFile(srcfile, w.Bytes(), 0755); err != nil {
 		t.Fatal(err)
 	}
 	if err := generateJSON(src, dst); err != nil {
 		t.Error(err)
 	}
-	dstfile := path.Join(dst, "u.json")
+	dstfile := path.Join(dst, "user.json")
 	if _, err = os.Stat(dstfile); err != nil {
 		t.Error(err)
 	}
