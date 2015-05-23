@@ -1,0 +1,666 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>API Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/default.min.css">
+    <style>
+    .sub-header {
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .navbar-fixed-top {
+      border: 0;
+    }
+
+     
+    .sidebar {
+      display: none;
+    }
+    @media (min-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0px;
+        bottom: 0;
+        left: 0;
+        z-index: 1000;
+        display: block;
+        padding: 20px;
+        overflow-x: hidden;
+        overflow-y: auto;  
+        background-color: #f5f5f5;
+        border-right: 1px solid #eee;
+      }
+    }
+
+     
+    .nav-sidebar {
+      margin-right: -21px;  
+      margin-bottom: 20px;
+      margin-left: -20px;
+    }
+    .nav-sidebar > li > a {
+      padding-right: 20px;
+      padding-left: 20px;
+    }
+    .nav-sidebar > .active > a,
+    .nav-sidebar > .active > a:hover,
+    .nav-sidebar > .active > a:focus {
+      color: #fff;
+      background-color: #428bca;
+    }
+    .nav-sidebar-submenu {
+      margin-right: 0px
+      margin-bottom: 0px;
+      margin-left: 20px;
+    }
+    .nav-sidebar-submenu > li > a {
+      padding-right: 20px;
+      padding-left: 20px;
+      padding: 5px 15px
+    }
+
+    .main {
+      padding: 20px;
+    }
+    @media (min-width: 768px) {
+      .main {
+        padding-right: 40px;
+        padding-left: 40px;
+      }
+    }
+    .main .page-header {
+      margin-top: 0;
+    }
+    .main > h2 {
+      padding-top: 20px;
+    }
+
+     
+    .placeholders {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .placeholders h4 {
+      margin-bottom: 0;
+    }
+    .placeholder {
+      margin-bottom: 20px;
+    }
+    .placeholder img {
+      display: inline-block;
+      border-radius: 50%;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+      <div class="col-sm-3 col-md-2 sidebar">
+      
+<ul class="nav nav-sidebar">
+  <li><a href="#"><strong>API Document</strong></a></li>
+
+  <li><a href="#article">article</a></li>
+  <li>
+    <ul class="nav nav-sidebar-submenu">
+      
+        <li><a href="#GET-%2farticles">GET /articles</a></li>
+      
+        <li><a href="#GET-%2farticles%2f%7bid%7d">GET /articles/{id}</a></li>
+      
+        <li><a href="#POST-%2farticles">POST /articles</a></li>
+      
+        <li><a href="#PATCH-%2farticles%2f%7bid%7d">PATCH /articles/{id}</a></li>
+      
+        <li><a href="#DELETE-%2farticle%2f%7bid%7d">DELETE /article/{id}</a></li>
+      
+    </ul>
+  </li>
+
+  <li><a href="#user">user</a></li>
+  <li>
+    <ul class="nav nav-sidebar-submenu">
+      
+        <li><a href="#GET-%2fusers">GET /users</a></li>
+      
+        <li><a href="#GET-%2fusers%2f%7bid%7d">GET /users/{id}</a></li>
+      
+        <li><a href="#POST-%2fusers">POST /users</a></li>
+      
+        <li><a href="#PATCH-%2fusers%2f%7bid%7d">PATCH /users/{id}</a></li>
+      
+        <li><a href="#DELETE-%2fuser%2f%7bid%7d">DELETE /user/{id}</a></li>
+      
+    </ul>
+  </li>
+
+</ul>
+
+    </div>
+
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      
+      
+  
+    <h1 class="page-header">
+      article <a name="article" class="anchorjs-link" href="#article"> <small><span class="glyphicon glyphicon-link xx-small" aria-hidden="true"></span></small></a> 
+    </h1>
+    <p></p>
+    <h2>Attributes</h2>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Format</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td></td>
+            <td>createdAt</td>
+            <td>string</td>
+            <td>date-time</td>
+            <td>datetime created data</td>
+            <td>
+              <code>2015-04-21T23:59:60Z</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>id</td>
+            <td>integer</td>
+            <td></td>
+            <td>resource id</td>
+            <td>
+              <code>1</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>name</td>
+            <td>string</td>
+            <td></td>
+            <td>user name</td>
+            <td>
+              <code>Ken</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>updatedAt</td>
+            <td>string</td>
+            <td>date-time</td>
+            <td>datetime updated data</td>
+            <td>
+              <code>2015-04-21T23:59:60Z</code>
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+      <h2>
+        GET /articles - List <a name="GET-/articles" class="anchorjs-link" href="#GET-%2farticles"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>List existing articles.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/articles -X GET \
+       -H "Content-Type: application/json"
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        GET /articles/{id} - Info <a name="GET-/articles/{id}" class="anchorjs-link" href="#GET-%2farticles%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Info for existing article.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/articles/{id} -X GET \
+       -H "Content-Type: application/json"
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        POST /articles - Create <a name="POST-/articles" class="anchorjs-link" href="#POST-%2farticles"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Create a new article.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/articles -X POST \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 201 Created</code></pre>
+
+
+
+
+    
+      <h2>
+        PATCH /articles/{id} - Update <a name="PATCH-/articles/{id}" class="anchorjs-link" href="#PATCH-%2farticles%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Update an existing article.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/articles/{id} -X PATCH \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        DELETE /article/{id} - Delete <a name="DELETE-/article/{id}" class="anchorjs-link" href="#DELETE-%2farticle%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Delete an existing article.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/article/{id} -X DELETE \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 204 No Content</code></pre>
+
+
+
+
+    
+  
+    <h1 class="page-header">
+      user <a name="user" class="anchorjs-link" href="#user"> <small><span class="glyphicon glyphicon-link xx-small" aria-hidden="true"></span></small></a> 
+    </h1>
+    <p></p>
+    <h2>Attributes</h2>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Format</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td></td>
+            <td>createdAt</td>
+            <td>string</td>
+            <td>date-time</td>
+            <td>datetime created data</td>
+            <td>
+              <code>2015-04-21T23:59:60Z</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>id</td>
+            <td>integer</td>
+            <td></td>
+            <td>resource id</td>
+            <td>
+              <code>1</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>name</td>
+            <td>string</td>
+            <td></td>
+            <td>user name</td>
+            <td>
+              <code>Ken</code>
+            </td>
+          </tr>
+          
+          <tr>
+            <td></td>
+            <td>updatedAt</td>
+            <td>string</td>
+            <td>date-time</td>
+            <td>datetime updated data</td>
+            <td>
+              <code>2015-04-21T23:59:60Z</code>
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+      <h2>
+        GET /users - List <a name="GET-/users" class="anchorjs-link" href="#GET-%2fusers"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>List existing users.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/users -X GET \
+       -H "Content-Type: application/json"
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        GET /users/{id} - Info <a name="GET-/users/{id}" class="anchorjs-link" href="#GET-%2fusers%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Info for existing user.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/users/{id} -X GET \
+       -H "Content-Type: application/json"
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        POST /users - Create <a name="POST-/users" class="anchorjs-link" href="#POST-%2fusers"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Create a new user.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/users -X POST \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 201 Created</code></pre>
+
+
+
+
+    
+      <h2>
+        PATCH /users/{id} - Update <a name="PATCH-/users/{id}" class="anchorjs-link" href="#PATCH-%2fusers%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Update an existing user.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/users/{id} -X PATCH \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 200 OK</code></pre>
+<pre><code class="json">{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}</code></pre> 
+
+
+
+
+    
+      <h2>
+        DELETE /user/{id} - Delete <a name="DELETE-/user/{id}" class="anchorjs-link" href="#DELETE-%2fuser%2f%7bid%7d"><small><span class="glyphicon glyphicon-link" aria-hidden="true"></span></small></a> 
+      </h2>
+
+      <p>Delete an existing user.</p>
+
+      
+
+<h3>Curl Example</h3>
+
+
+
+
+<pre><code class="bash">curl http://localhost/user/{id} -X DELETE \
+       -H "Content-Type: application/json" \
+       -d '{
+  &#34;createdAt&#34;: &#34;2015-04-21T23:59:60Z&#34;,
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Ken&#34;,
+  &#34;updatedAt&#34;: &#34;2015-04-21T23:59:60Z&#34;
+}'
+</code></pre>
+
+
+
+      
+
+<h3>Response Example</h3>
+
+
+<pre><code>HTTP/1.1 204 No Content</code></pre>
+
+
+
+
+    
+  
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </body>
+</html>
