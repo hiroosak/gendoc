@@ -55,16 +55,21 @@ func NewSchema(data, rootData map[string]interface{}) (*Schema, error) {
 		rootData:    rootData,
 		Type:        typeStr,
 		Id:          String(data, "id"),
-		Description: String(data, "descption"),
+		Description: String(data, "description"),
 		Format:      String(data, "format"),
 		Title:       String(data, "title"),
 		Example:     Interface(data, "example", typeStr),
 	}
 
-	r.setItems()
-	r.setDefinitions()
-	r.setProperties()
-	r.setLinkList()
+	if err := r.setItems(); err != nil {
+		return nil, err
+	}
+	if err := r.setProperties(); err != nil {
+		return nil, err
+	}
+	if err := r.setLinkList(); err != nil {
+		return nil, err
+	}
 
 	allData[r.Id] = *r
 
@@ -131,9 +136,14 @@ func (r *Schema) setDefinitions() error {
 	if err := r.setRefDefinitions(); err == nil {
 		return nil
 	}
-	var definitions map[string]interface{}
-	if err := scan.ScanTree(r.data, `/definitions`, &definitions); err != nil {
-		return err
+
+	definitionInterface, ok := r.data["definitions"]
+	if !ok {
+		return nil
+	}
+	definitions, ok := definitionInterface.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Invalid definitions type")
 	}
 
 	r.Definitions = make(map[string]Schema, len(definitions))
@@ -149,31 +159,37 @@ func (r *Schema) setDefinitions() error {
 }
 
 func (r *Schema) setRefDefinitions() error {
-	var ref string
-	if err := scan.ScanTree(r.data, "/$ref", &ref); err == nil {
-		if isJSONExt(ref) {
-			r.Definitions = make(map[string]Schema, 1)
-			r.Definitions[baseResourceName(ref)] = Schema{
-				Example: ref,
-				Type:    dummyType,
-			}
-			return nil
+	refInterface, ok := r.data["$ref"]
+	if !ok {
+		return nil
+	}
+
+	ref, ok := refInterface.(string)
+	if !ok {
+		return fmt.Errorf("Wrong format ref definitions")
+	}
+	if isSupportExt(ref) {
+		r.Definitions = make(map[string]Schema, 1)
+		r.Definitions[baseResourceName(ref)] = Schema{
+			Example: ref,
+			Type:    dummyType,
 		}
+		return nil
+	}
 
-		i := strings.Index(ref, "#")
-		path := ref[i+1 : len(ref)]
+	i := strings.Index(ref, "#")
+	path := ref[i+1 : len(ref)]
 
-		var t map[string]interface{}
-		if scan.ScanTree(r.rootData, path, &t); err == nil {
-			ss := strings.Split(ref, "/")
-			name := ss[len(ss)-1]
-			r.Definitions = make(map[string]Schema, 1)
-			r.Definitions[name] = Schema{
-				Description: String(t, "description"),
-				Type:        String(t, "type"),
-				Example:     Interface(t, "example", String(t, "type")),
-				Format:      String(t, "format"),
-			}
+	var t map[string]interface{}
+	if err := scan.ScanTree(r.rootData, path, &t); err == nil {
+		ss := strings.Split(ref, "/")
+		name := ss[len(ss)-1]
+		r.Definitions = make(map[string]Schema, 1)
+		r.Definitions[name] = Schema{
+			Description: String(t, "description"),
+			Type:        String(t, "type"),
+			Example:     Interface(t, "example", String(t, "type")),
+			Format:      String(t, "format"),
 		}
 	}
 	return nil
@@ -211,9 +227,9 @@ func (r *Schema) setLinkList() error {
 }
 
 func (r *Schema) setItems() error {
-	var i interface{}
-	if err := scan.ScanTree(r.data, `/items`, &i); err != nil {
-		return err
+	i, ok := r.data["items"]
+	if !ok {
+		return nil
 	}
 
 	items, err := NewSchemaFromInterface(i, r.rootData)
@@ -226,17 +242,20 @@ func (r *Schema) setItems() error {
 }
 
 func (r *Schema) setProperties() error {
-	var propertyData map[string]interface{}
-	if err := scan.ScanTree(r.data, `/properties`, &propertyData); err != nil {
-		return err
+	ps, ok := r.data["properties"]
+	if !ok {
+		return nil
 	}
-
+	propertyData, ok := ps.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Invalid properties")
+	}
 	r.Properties = make(map[string]Schema, len(propertyData))
 
 	for name, property := range propertyData {
 		var ref string
 		if err := scan.ScanTree(property, "/$ref", &ref); err == nil {
-			if isJSONExt(ref) {
+			if isSupportExt(ref) {
 				r.Properties[baseResourceName(name)] = Schema{
 					Example: ref,
 					Type:    dummyType,

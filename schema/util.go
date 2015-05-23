@@ -55,9 +55,18 @@ func Interface(target interface{}, key string, typeStr string) interface{} {
 	return v
 }
 
+func isSupportExt(s string) bool {
+	return isJSONExt(s) || isYAMLExt(s)
+}
+
 func isJSONExt(s string) bool {
 	ext := path.Ext(s)
 	return ext == ".json"
+}
+
+func isYAMLExt(s string) bool {
+	ext := path.Ext(s)
+	return ext == ".yaml" || ext == ".yml"
 }
 
 func baseResourceName(s string) string {
