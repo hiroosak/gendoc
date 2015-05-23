@@ -32,6 +32,8 @@ $ vim src/{article,comment}.yaml
 $ gendoc doc -src ./src -meta meta.json > docs.html
 ```
 
+* [Sample Document](http://hiroosak.github.io/gendoc/sample.html)
+
 ## doc
 
 Generate a HTML document. This command has these flag options.
