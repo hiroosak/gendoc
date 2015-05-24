@@ -2,48 +2,53 @@ package schema
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
-func TestNewSchema(t *testing.T) {
+func readTestData(t *testing.T) (*Schema, *Schema) {
 	user, err := newTestSchema(userJSON)
 	if err != nil {
-		t.Fatal("error")
+		t.Fatal(err)
 	}
 	article, err := newTestSchema(articleJSON)
 	if err != nil {
-		t.Fatal("error")
+		t.Fatal(err)
 	}
+	return user, article
+}
 
-	js := article.ExampleJSON()
+func TestNewSchema(t *testing.T) {
+	user, article := readTestData(t)
+
+	s := article.ExampleJSON()
 	var i map[string]interface{}
-	if err := json.Unmarshal([]byte(js), &i); err != nil {
-		t.Fatal("error")
+	if err := json.Unmarshal([]byte(s), &i); err != nil {
+		t.Fatal("invalid article json")
 	}
-
-	if i["created_at"] != "2012-01-01T12:00:00Z" {
-		t.Error("wrong created_at")
-	}
-	if i["updated_at"] != "2012-01-01T12:00:00Z" {
-		t.Error("wrong updated_at")
-	}
-
-	u1, ok := i["user"].(map[string]interface{})
+	articleUser, ok := i["user"].(map[string]interface{})
 	if !ok {
-		t.Fatal("wrong user map")
-	}
+		t.Fatal("invalid article json")
 
-	js2 := user.ExampleJSON()
-	var u2 map[string]interface{}
-	if err := json.Unmarshal([]byte(js2), &u2); err != nil {
-		t.Fatal("error")
 	}
-	keys := []string{"id", "age", "name"}
-	for _, key := range keys {
-		if u1[key] != u2[key] {
-			t.Errorf("wrong %v", key)
+	if !reflect.DeepEqual(articleUser, user.ExampleInterface()) {
+		t.Errorf("article.user %v wants to equal user %v", articleUser, user.ExampleInterface())
+	}
+}
+
+func TestExampleGetData(t *testing.T) {
+	_, article := readTestData(t)
+
+	for _, l := range article.Links {
+		if l.Rel == "instances" && l.Href == "/articles" {
+			getdata := l.Schema.ExampleGetData()
+			if getdata[0] != "name=Article" {
+				t.Errorf("expected name=Article, get %v", getdata[0])
+			}
+			return
 		}
 	}
+	t.Errorf("instances link is not found")
 }
 
 func newTestSchema(str string) (*Schema, error) {
@@ -51,7 +56,6 @@ func newTestSchema(str string) (*Schema, error) {
 	if err := json.Unmarshal([]byte(str), &data); err != nil {
 		return nil, err
 	}
-
 	return NewSchema(data, nil)
 }
 
@@ -76,7 +80,7 @@ const articleJSON = `{
     },
     "updated_at": {
       "description": "when articles was updated",
-      "example": "2012-01-01T12:00:00Z",
+      "example": "2012-01-02T12:00:00Z",
       "format": "date-time",
       "type": [
         "string"
@@ -88,7 +92,7 @@ const articleJSON = `{
   "links": [
     {
       "description": "Create a new articles.",
-      "href": "/articless",
+      "href": "/articles",
       "method": "POST",
       "rel": "create",
       "schema": {
@@ -105,28 +109,38 @@ const articleJSON = `{
     },
     {
       "description": "Delete an existing articles.",
-      "href": "/articless/{id}",
+      "href": "/articles/{id}",
       "method": "DELETE",
       "rel": "destroy",
       "title": "Delete"
     },
     {
       "description": "Info for existing articles.",
-      "href": "/articless/{id}",
+      "href": "/articles/{id}",
       "method": "GET",
       "rel": "self",
       "title": "Info"
     },
     {
-      "description": "List existing articless.",
-      "href": "/articless",
+      "description": "List existing articles.",
+      "href": "/articles",
       "method": "GET",
       "rel": "instances",
-      "title": "List"
+      "title": "List",
+			"encType": "aplication/x-www-form-urlencoded",
+			"schema": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"descritption": "name of the product",
+						"example": "Article"
+					}
+				}
+			}
     },
     {
       "description": "Update an existing articles.",
-      "href": "/articless/{id}",
+      "href": "/articles/{id}",
       "method": "PATCH",
       "rel": "update",
       "schema": {
