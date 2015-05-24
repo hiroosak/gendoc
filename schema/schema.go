@@ -213,13 +213,18 @@ func (r *Schema) setLinkList() error {
 			targetSchema = r
 		}
 
+		encType := String(link, "encType")
+		if encType == "" {
+			encType = "application/json"
+		}
+
 		l := LinkDescription{
 			Title:        String(link, "title"),
 			Description:  String(link, "description"),
 			Href:         String(link, "href"),
 			Method:       String(link, "method"),
 			Rel:          String(link, "rel"),
-			EncType:      String(link, "encType"),
+			EncType:      encType,
 			Schema:       *schema,
 			TargetSchema: *targetSchema,
 		}
