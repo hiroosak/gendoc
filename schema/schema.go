@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"strings"
 
@@ -198,11 +199,12 @@ func (r *Schema) setRefDefinitions() error {
 func (r *Schema) setLinkList() error {
 	var linksData []map[string]interface{}
 	if err := scan.ScanTree(r.data, `/links`, &linksData); err != nil {
-		return err
+		return nil
 	}
 
 	for _, link := range linksData {
 		schema, err := NewSchemaFromInterface(link["schema"], r.rootData)
+
 		if err != nil || len(schema.Properties) == 0 {
 			schema = r
 		}
@@ -211,12 +213,18 @@ func (r *Schema) setLinkList() error {
 			targetSchema = r
 		}
 
+		encType := String(link, "encType")
+		if encType == "" {
+			encType = "application/json"
+		}
+
 		l := LinkDescription{
 			Title:        String(link, "title"),
 			Description:  String(link, "description"),
 			Href:         String(link, "href"),
 			Method:       String(link, "method"),
 			Rel:          String(link, "rel"),
+			EncType:      encType,
 			Schema:       *schema,
 			TargetSchema: *targetSchema,
 		}
@@ -318,6 +326,16 @@ func (s *Schema) ExampleInterface() map[string]interface{} {
 		}
 	}
 	return j
+}
+
+func (s *Schema) ExampleGetData() []string {
+	params := s.ExampleInterface()
+	val := url.Values{}
+	for k, v := range params {
+		val.Set(k, fmt.Sprintf("%v", v))
+	}
+	e := val.Encode()
+	return strings.Split(e, "&")
 }
 
 func (s *Schema) ToJSON() ([]byte, error) {

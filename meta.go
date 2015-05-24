@@ -15,9 +15,7 @@ func readMeta(path string) (Meta, error) {
 	meta := Meta{
 		Title:   "API Document",
 		BaseURL: "http://localhost",
-		Headers: []string{
-			"Content-Type: application/json",
-		},
+		Headers: []string{},
 	}
 	if path == "" {
 		return meta, nil
