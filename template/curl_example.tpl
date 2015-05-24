@@ -3,10 +3,13 @@
 <h3>Curl Example</h3>
 
 {{ $hs := headers }}
+{{ $encType := .EncType }}
 
 {{ if eq .Method "GET" }}
 <pre><code class="bash">curl {{ baseURL }}{{ .Href }} -X GET{{ range $hs }} \
-       -H "{{ . }}"{{ end }}
+       -H "{{ . }}"{{ end }}{{ if eq $encType "application/json" }} \
+       -d '{{ .Schema.ExampleJSON }}'{{else if eq $encType "application/x-www-form-urlencoded" }}{{ $ps := .Schema.ExampleGetData }}{{ range $ps }} \
+       -d '{{ . }}'{{ end }}{{ end }}
 </code></pre>
 {{ else if eq .Method "POST" }}
 <pre><code class="bash">curl {{ baseURL }}{{ .Href }} -X POST{{ range $hs }} \
