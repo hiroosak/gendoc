@@ -1,0 +1,72 @@
+---
+$schema: "http://json-schema.org/draft-04/hyper-schema"
+id: "user"
+title: user
+type: object
+definitions:
+  id:
+    type: integer
+    description: resource id
+    example: 1
+  name:
+    type: string
+    description: user name
+    example: Ken
+  createdAt:
+    type: string
+    description: datetime created data
+    format: "date-time"
+    example: 2015-04-21T23:59:60Z
+  updatedAt:
+    type: string
+    description: datetime updated data
+    format: "date-time"
+    example: 2015-04-21T23:59:60Z
+links:
+- description: List existing users.
+  href: "/users"
+  method: GET
+  rel: instances
+  title: List
+- description: Info for existing user.
+  href: "/users/{id}"
+  method: GET
+  rel: self
+  title: Info
+- description: Create a new user.
+  href: "/users"
+  method: POST
+  rel: create
+  schema:
+    properties: {}
+    type:
+    - object
+  title: Create
+- description: Update an existing user.
+  href: "/users/{id}"
+  method: PATCH
+  rel: update
+  schema:
+    properties: {}
+    type:
+    - object
+  title: Update
+- description: Delete an existing user.
+  href: "/user/{id}"
+  method: DELETE
+  rel: destroy
+  title: Delete
+properties:
+  id:
+    "$ref": "#/definitions/id"
+  name:
+    "$ref": "#/definitions/name"
+  createdAt:
+    "$ref": "#/definitions/createdAt"
+  updatedAt:
+    "$ref": "#/definitions/updatedAt"
+required:
+- id 
+- name
+- createdAt
+- updatedAt

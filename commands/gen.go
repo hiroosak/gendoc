@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func generateJSON(src, dst string) error {
+func GenerateJSON(src, dst string) error {
 	info, err := os.Lstat(src)
 	if err != nil {
 		return err
