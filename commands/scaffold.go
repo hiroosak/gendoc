@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"bitbucket.org/pkg/inflect"
 )
 
-func scaffold(r string) {
+func Scaffold(r string) {
 	if r == "" {
 		fmt.Println("Please input resource name")
 		fmt.Println("USAGE:")
@@ -66,17 +66,18 @@ definitions:
     format: "date-time"
     example: 2015-04-21T23:59:60Z
 links:
-- description: List existing {{ .Resources }}.
+- title: List
+  description: List existing {{ .Resources }}.
   href: "/{{ .Resources }}"
   method: GET
   rel: instances
-  title: List
-- description: Info for existing {{ .Resource }}.
+- title: Info
+  description: Info for existing {{ .Resource }}.
   href: "/{{ .Resources }}/{id}"
   method: GET
   rel: self
-  title: Info
-- description: Create a new {{ .Resource }}.
+- title: Create
+  description: Create a new {{ .Resource }}.
   href: "/{{ .Resources }}"
   method: POST
   rel: create
@@ -84,8 +85,8 @@ links:
     properties: {}
     type:
     - object
-  title: Create
-- description: Update an existing {{ .Resource }}.
+- title: Update
+  description: Update an existing {{ .Resource }}.
   href: "/{{ .Resources }}/{id}"
   method: PATCH
   rel: update
@@ -93,12 +94,11 @@ links:
     properties: {}
     type:
     - object
-  title: Update
-- description: Delete an existing {{ .Resource }}.
+- title: Delete
+  description: Delete an existing {{ .Resource }}.
   href: "/{{ .Resource }}/{id}"
   method: DELETE
   rel: destroy
-  title: Delete
 properties:
   id:
     "$ref": "#/definitions/id"

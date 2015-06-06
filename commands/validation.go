@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/hiroosak/gendoc/schema"
 )
 
-func validSchemaTree(src string) error {
+func ValidSchemaTree(src string) error {
 	if err := isDir(src); err != nil {
 		return fmt.Errorf("src is not directory")
 	}

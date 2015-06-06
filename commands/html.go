@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ type htmlParam struct {
 	Overview    template.HTML
 }
 
-func generateHTML(src, metafile, overviewfile, templatePath string) error {
+func GenerateHTML(src, metafile, overviewfile, templatePath string) error {
 	if err := isDir(src); err != nil {
 		return err
 	}

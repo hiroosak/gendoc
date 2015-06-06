@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hiroosak/gendoc/commands"
+
 	"github.com/codegangsta/cli"
 )
 
@@ -65,13 +67,13 @@ func main() {
 }
 
 func scaffoldAction(c *cli.Context) {
-	scaffold(c.Args().First())
+	commands.Scaffold(c.Args().First())
 }
 
 func genAction(c *cli.Context) {
 	src := c.String("src")
 	dst := c.String("dst")
-	if err := generateJSON(src, dst); err != nil {
+	if err := commands.GenerateJSON(src, dst); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
 		cli.ShowAppHelp(c)
@@ -82,7 +84,7 @@ func genAction(c *cli.Context) {
 
 func validAction(c *cli.Context) {
 	src := c.String("src")
-	if err := validSchemaTree(src); err != nil {
+	if err := commands.ValidSchemaTree(src); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
 	} else {
@@ -96,7 +98,7 @@ func docAction(c *cli.Context) {
 	template := c.String("template")
 	overview := c.String("overview")
 
-	if err := generateHTML(src, meta, overview, template); err != nil {
+	if err := commands.GenerateHTML(src, meta, overview, template); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
 		cli.ShowAppHelp(c)
