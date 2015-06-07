@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -28,6 +29,7 @@ func (r *refPool) Set(refStr string, s *Schema) {
 	r.refMap[refStr] = s
 }
 
+// +gen slice:"GroupBy[string],Where"
 type Schema struct {
 	Id          string
 	Title       string
@@ -46,6 +48,14 @@ type Schema struct {
 	CurrentRef string
 	refPool    *refPool
 	parent     *Schema
+}
+
+func NewSchemaFromFile(path string, info os.FileInfo) (*Schema, error) {
+	bytes, err := YamlFileToJson(path, info)
+	if err != nil {
+		return nil, err
+	}
+	return NewSchemaFromBytes(bytes, "", nil)
 }
 
 func NewSchemaFromInterface(data interface{}, refStr string, parent *Schema) (*Schema, error) {
@@ -155,16 +165,19 @@ func (s *Schema) parseLinks(data interface{}) error {
 	for i, l := range linkLists {
 		link, ok := l.(map[string]interface{})
 		if !ok {
-			panic("err")
 			return errors.New("parse failed links")
 		}
 		var schema *Schema
 		if v, ok := link["schema"]; ok {
 			schema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "schema"), s)
+		} else {
+			schema = s
 		}
 		var targetSchema *Schema
 		if v, ok := link["targetSchema"]; ok {
 			targetSchema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "targetSchema"), s)
+		} else {
+			targetSchema = s
 		}
 
 		l := &LinkDescription{
@@ -194,14 +207,33 @@ func (s *Schema) parseItems(data interface{}) error {
 }
 
 func (s *Schema) resolveReference(idStr, refStr string) *Schema {
-	if refStr == "#" {
-		return s
-	}
 	if schema, ok := schemas[idStr]; !ok {
 		return s.refPool.Get(refStr)
 	} else {
 		return schema.refPool.Get(refStr)
 	}
+}
+
+func (s *Schema) Alias() *Schema {
+	if s.Ref == "" {
+		return s
+	}
+	return s.resolveReference(s.Id, s.Ref)
+}
+
+func (s *Schema) ResolveType() string {
+	schema := s.Alias()
+	return schema.Type
+}
+
+func (s *Schema) ResolveFormat() string {
+	schema := s.Alias()
+	return schema.Format
+}
+
+func (s *Schema) ResolveDescription() string {
+	schema := s.Alias()
+	return schema.Description
 }
 
 func (s *Schema) ExampleJSON() string {
@@ -236,10 +268,10 @@ func (s *Schema) ExampleInterface() interface{} {
 		}
 
 		switch property.Type {
-		//case "array":
-		//	if len(property.Items) > 0 {
-		//		j[key] = []interface{}{property.Items[0].ExampleInterface()}
-		//	}
+		case "array":
+			if len(property.Items) > 0 {
+				j[key] = []interface{}{property.Items[0].ExampleInterface()}
+			}
 		case "object":
 			j[key] = property.ExampleInterface()
 		default:

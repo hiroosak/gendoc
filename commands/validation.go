@@ -17,12 +17,7 @@ func ValidSchemaTree(src string) error {
 		if info.IsDir() {
 			return nil
 		}
-		s, err := schema.NewSchemaFromFile(path, info)
-		if err != nil {
-			return err
-		}
-
-		if js, err := s.ToJSON(); err != nil {
+		if js, err := schema.YamlFileToJson(path, info); err != nil {
 			return nil
 		} else {
 			return schema.ValidSchema(js)
