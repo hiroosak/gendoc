@@ -118,7 +118,6 @@ func TestExampleJSONArrayObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	if len(jm) != 1 {
 		t.Fatalf("len(j) length is not 1. %v", len(jm))
 	}
