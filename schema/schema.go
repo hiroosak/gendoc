@@ -292,8 +292,12 @@ func (s *Schema) ExampleInterface() interface{} {
 
 	j := map[string]interface{}{}
 	for key, property := range s.Properties {
-		refs := s.resolveReference(s.Id, property.Ref)
-		j[key] = refs.ExampleInterface()
+		if property.Ref != "" {
+			refs := s.resolveReference(s.Id, property.Ref)
+			j[key] = refs.ExampleInterface()
+		} else {
+			j[key] = property.Example
+		}
 	}
 	return j
 }
