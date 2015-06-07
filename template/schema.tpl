@@ -22,11 +22,11 @@
           <tr>
             <td></td>
             <td>{{ $n }}</td>
-            <td>{{ $d.Type }}</td>
-            <td>{{ $d.Format }}</td>
-            <td>{{ $d.Description }}</td>
+            <td>{{ $d.ResolveType }}</td>
+            <td>{{ $d.ResolveFormat }}</td>
+            <td>{{ $d.ResolveDescription }}</td>
             <td>
-              <code>{{ $d.ExampleAlias }}</code>
+              <code>{{ $d.ExampleJSON }}</code>
             </td>
           </tr>
           {{ end }}

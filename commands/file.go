@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -21,11 +21,7 @@ func yaml2JSON(src, dst string, info os.FileInfo) error {
 	if ext != ".yaml" && ext != ".yml" {
 		return nil
 	}
-	r, err := schema.NewSchemaFromFile(src, info)
-	if err != nil {
-		return err
-	}
-	j, err := r.ToJSON()
+	j, err := schema.YamlFileToJson(src, info)
 	if err != nil {
 		return err
 	}

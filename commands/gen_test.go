@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"io/ioutil"
@@ -22,7 +22,7 @@ func TestGenerateJSON(t *testing.T) {
 	if err := ioutil.WriteFile(srcfile, w.Bytes(), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := generateJSON(src, dst); err != nil {
+	if err := GenerateJSON(src, dst); err != nil {
 		t.Error(err)
 	}
 	dstfile := path.Join(dst, "user.json")

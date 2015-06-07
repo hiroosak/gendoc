@@ -2,19 +2,46 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
-
-	"github.com/ghodss/yaml"
-	"github.com/mattn/go-scan"
 )
 
-const dummyType = "resource"
+var schemas map[string]*Schema = make(map[string]*Schema, 0)
 
-var allData map[string]Schema = map[string]Schema{}
+type refPool struct {
+	refMap map[string]*Schema
+}
+
+func NewRefPool() *refPool {
+	return &refPool{
+		refMap: make(map[string]*Schema, 0),
+	}
+}
+
+func (r *refPool) Get(refStr string) *Schema {
+	return r.refMap[refStr]
+}
+
+func (r *refPool) Set(refStr string, s *Schema) {
+	r.refMap[refStr] = s
+}
+
+func (r *refPool) Keys() []string {
+	rs := make([]string, r.Len())
+	var i int
+	for k, _ := range r.refMap {
+		rs[i] = k
+		i += 1
+	}
+	return rs
+}
+
+func (r *refPool) Len() int {
+	return len(r.refMap)
+}
 
 // +gen slice:"GroupBy[string],Where"
 type Schema struct {
@@ -24,273 +51,216 @@ type Schema struct {
 	Type        string
 	Format      string
 	Example     interface{}
-	Definitions map[string]Schema
-	Properties  map[string]Schema
+	Definitions map[string]*Schema
+	Properties  map[string]*Schema
 
-	Items []Schema
-	Links []LinkDescription
+	Items []*Schema
+	Links []*LinkDescription
 
-	data     map[string]interface{}
-	rootData map[string]interface{}
+	Ref string
+
+	CurrentRef string
+	refPool    *refPool
+	parent     *Schema
 }
 
-type LinkDescription struct {
-	Href         string
-	Rel          string
-	Title        string
-	Description  string
-	TargetSchema Schema
-	MediaType    string
-	Method       string
-	EncType      string
-	Schema       Schema
-}
-
-func NewSchema(data, rootData map[string]interface{}) (*Schema, error) {
-	if rootData == nil {
-		rootData = data
+func NewSchemaFromFile(path string, info os.FileInfo) (*Schema, error) {
+	bytes, err := YamlFileToJson(path, info)
+	if err != nil {
+		return nil, err
 	}
+	return NewSchemaFromBytes(bytes, "", nil)
+}
+
+func NewSchemaFromInterface(data interface{}, refStr string, parent *Schema) (*Schema, error) {
+	if refStr == "" {
+		refStr = "#"
+	}
+	d, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("data type is not map[string]interface{}")
+	}
+	return NewSchema(d, refStr, parent)
+}
+
+func NewSchemaFromBytes(data []byte, refStr string, parent *Schema) (*Schema, error) {
+	if refStr == "" {
+		refStr = "#"
+	}
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(data, &dataMap); err != nil {
+		return nil, err
+	}
+	return NewSchema(dataMap, refStr, parent)
+}
+
+func NewSchema(data map[string]interface{}, refStr string, parent *Schema) (*Schema, error) {
+	if refStr == "" {
+		refStr = "#"
+	}
+	idStr := String(data, "id")
 	typeStr := String(data, "type")
-	r := &Schema{
-		data:        data,
-		rootData:    rootData,
+	s := &Schema{
 		Type:        typeStr,
 		Id:          String(data, "id"),
 		Description: String(data, "description"),
 		Format:      String(data, "format"),
 		Title:       String(data, "title"),
 		Example:     Interface(data, "example", typeStr),
+		Ref:         String(data, "$ref"),
+		CurrentRef:  refStr,
+		parent:      parent,
+	}
+	s.Properties = make(map[string]*Schema, 0)
+	s.Definitions = make(map[string]*Schema, 0)
+	s.Items = make([]*Schema, 0)
+	s.Links = make([]*LinkDescription, 0)
+
+	if idStr != "" {
+		schemas[idStr] = s
 	}
 
-	if err := r.setItems(); err != nil {
-		return nil, err
+	// reference pool
+	if parent != nil {
+		s.refPool = parent.refPool
 	}
-	if err := r.setProperties(); err != nil {
-		return nil, err
-	}
-	if err := r.setLinkList(); err != nil {
-		return nil, err
+	if s.refPool == nil {
+		s.refPool = NewRefPool()
 	}
 
-	allData[r.Id] = *r
+	s.parseProperties(data["properties"])
+	s.parseDefinitions(data["definitions"])
+	s.parseLinks(data["links"])
+	s.parseItems(data["items"])
 
-	return r, nil
+	s.refPool.Set(refStr, s)
+
+	return s, nil
 }
 
-func NewSchemaFromFile(path string, info os.FileInfo) (*Schema, error) {
-	isJSON := isExtJSONFile(info)
-	isYAML := isExtYaml(info)
-
-	if !isJSON && !isYAML {
-		return nil, fmt.Errorf("%v is not support file format", info.Name())
+func (s *Schema) parseProperties(data interface{}) {
+	properties, ok := data.(map[string]interface{})
+	if !ok {
+		return
 	}
-
-	rs, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var d map[string]interface{}
-	switch {
-	case isJSON:
-		if err := json.Unmarshal(rs, &d); err != nil {
-			return nil, err
+	for key, property := range properties {
+		prop, err := NewSchemaFromInterface(property, s.appendRefPath("properties", key), s)
+		if err != nil {
+			continue
 		}
-	case isYAML:
-		if err := yaml.Unmarshal(rs, &d); err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("%v is not support file format", info.Name())
+		s.Properties[key] = prop
 	}
-
-	return NewSchema(d, nil)
 }
 
-func (s Schema) ExampleAlias() interface{} {
-	if s.Type == dummyType {
-		e := s.Example.(string)
-		if a, ok := allData[baseResourceName(e)]; ok {
-			return a.ExampleJSON()
-		}
+func (s *Schema) parseDefinitions(data interface{}) {
+	definitions, ok := data.(map[string]interface{})
+	if !ok {
+		return
 	}
-	return s.Example
+	for key, definition := range definitions {
+		def, err := NewSchemaFromInterface(definition, s.appendRefPath("definitions", key), s)
+		if err != nil {
+			continue
+		}
+		s.Definitions[key] = def
+	}
 }
 
-func NewSchemaFromInterface(data, rootData interface{}) (*Schema, error) {
+func (s *Schema) parseLinks(data interface{}) error {
 	if data == nil {
-		return nil, fmt.Errorf("data is nil")
-	}
-	d, ok := data.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("data type is not map[string]interface{}")
-	}
-	rd, ok := rootData.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("rootData type is not map[string]interface{}")
-	}
-
-	return NewSchema(d, rd)
-}
-
-func (r *Schema) setDefinitions() error {
-	if err := r.setRefDefinitions(); err == nil {
 		return nil
 	}
 
-	definitionInterface, ok := r.data["definitions"]
+	linkLists, ok := data.([]interface{})
 	if !ok {
-		return nil
-	}
-	definitions, ok := definitionInterface.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("Invalid definitions type")
+		return errors.New("parse failed links")
 	}
 
-	r.Definitions = make(map[string]Schema, len(definitions))
-	for name, d := range definitions {
-		r.Definitions[name] = Schema{
-			Description: String(d, "description"),
-			Type:        String(d, "type"),
-			Example:     Interface(d, "example", String(d, "type")),
-			Format:      String(d, "format"),
+	for i, l := range linkLists {
+		link, ok := l.(map[string]interface{})
+		if !ok {
+			return errors.New("parse failed links")
 		}
-	}
-	return nil
-}
-
-func (r *Schema) setRefDefinitions() error {
-	refInterface, ok := r.data["$ref"]
-	if !ok {
-		return nil
-	}
-
-	ref, ok := refInterface.(string)
-	if !ok {
-		return fmt.Errorf("Wrong format ref definitions")
-	}
-	if isSupportExt(ref) {
-		r.Definitions = make(map[string]Schema, 1)
-		r.Definitions[baseResourceName(ref)] = Schema{
-			Example: ref,
-			Type:    dummyType,
+		var schema *Schema
+		if v, ok := link["schema"]; ok {
+			schema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "schema"), s)
+		} else {
+			schema = s
 		}
-		return nil
-	}
-
-	i := strings.Index(ref, "#")
-	path := ref[i+1 : len(ref)]
-
-	var t map[string]interface{}
-	if err := scan.ScanTree(r.rootData, path, &t); err == nil {
-		ss := strings.Split(ref, "/")
-		name := ss[len(ss)-1]
-		r.Definitions = make(map[string]Schema, 1)
-		r.Definitions[name] = Schema{
-			Description: String(t, "description"),
-			Type:        String(t, "type"),
-			Example:     Interface(t, "example", String(t, "type")),
-			Format:      String(t, "format"),
-		}
-	}
-	return nil
-}
-
-func (r *Schema) setLinkList() error {
-	var linksData []map[string]interface{}
-	if err := scan.ScanTree(r.data, `/links`, &linksData); err != nil {
-		return nil
-	}
-
-	for _, link := range linksData {
-		schema, err := NewSchemaFromInterface(link["schema"], r.rootData)
-
-		if err != nil || len(schema.Properties) == 0 {
-			schema = r
-		}
-		targetSchema, err := NewSchemaFromInterface(link["targetSchema"], r.rootData)
-		if err != nil || len(targetSchema.Properties) == 0 {
-			targetSchema = r
+		var targetSchema *Schema
+		if v, ok := link["targetSchema"]; ok {
+			targetSchema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "targetSchema"), s)
+		} else {
+			targetSchema = s
 		}
 
-		encType := String(link, "encType")
-		if encType == "" {
-			encType = "application/json"
-		}
-
-		l := LinkDescription{
+		l := &LinkDescription{
 			Title:        String(link, "title"),
 			Description:  String(link, "description"),
 			Href:         String(link, "href"),
 			Method:       String(link, "method"),
 			Rel:          String(link, "rel"),
-			EncType:      encType,
-			Schema:       *schema,
-			TargetSchema: *targetSchema,
+			EncType:      String(link, "encType"),
+			Schema:       schema,
+			TargetSchema: targetSchema,
 		}
-		r.Links = append(r.Links, l)
+
+		s.Links = append(s.Links, l)
 	}
 
 	return nil
 }
 
-func (r *Schema) setItems() error {
-	i, ok := r.data["items"]
-	if !ok {
-		return nil
-	}
-
-	items, err := NewSchemaFromInterface(i, r.rootData)
+func (s *Schema) parseItems(data interface{}) error {
+	item, err := NewSchemaFromInterface(data, s.appendRefPath("items"), s)
 	if err != nil {
 		return err
 	}
-	r.Items = append(r.Items, *items)
-
+	s.Items = append(s.Items, item)
 	return nil
 }
 
-func (r *Schema) setProperties() error {
-	ps, ok := r.data["properties"]
-	if !ok {
-		return nil
+func (s *Schema) resolveReference(idStr, refStr string) *Schema {
+	if n := strings.Index(refStr, "."); n > 0 {
+		idStr = refStr[0:n]
+		refStr = "#"
 	}
-	propertyData, ok := ps.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("Invalid properties")
+	if schema, ok := schemas[idStr]; !ok {
+		return s.refPool.Get(refStr)
+	} else {
+		return schema.refPool.Get(refStr)
 	}
-	r.Properties = make(map[string]Schema, len(propertyData))
+}
 
-	for name, property := range propertyData {
-		var ref string
-		if err := scan.ScanTree(property, "/$ref", &ref); err == nil {
-			if isSupportExt(ref) {
-				r.Properties[baseResourceName(name)] = Schema{
-					Example: ref,
-					Type:    dummyType,
-				}
-				continue
-			}
-
-			i := strings.Index(ref, "#")
-			path := ref[i+1 : len(ref)]
-
-			var t map[string]interface{}
-			if scan.ScanTree(r.rootData, path, &t); err == nil {
-				r.Properties[baseResourceName(ref)] = Schema{
-					Description: String(t, "description"),
-					Type:        String(t, "type"),
-					Example:     Interface(t, "example", String(t, "type")),
-					Format:      String(t, "format"),
-				}
-				continue
-			}
-		}
-		if schema, err := NewSchemaFromInterface(property, r.rootData); err == nil {
-			r.Properties[name] = *schema
-		}
+func (s *Schema) Alias() *Schema {
+	if s.Ref == "" {
+		return s
 	}
+	return s.resolveReference(s.Id, s.Ref)
+}
 
-	return nil
+func (s *Schema) ResolveType() string {
+	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
+	return schema.Type
+}
+
+func (s *Schema) ResolveFormat() string {
+	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
+	return schema.Format
+}
+
+func (s *Schema) ResolveDescription() string {
+	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
+	return schema.Description
 }
 
 func (s *Schema) ExampleJSON() string {
@@ -299,37 +269,45 @@ func (s *Schema) ExampleJSON() string {
 	return string(res)
 }
 
-func (s *Schema) ExampleInterface() map[string]interface{} {
-	j := map[string]interface{}{}
+func (s *Schema) ExampleInterface() interface{} {
+	if s == nil {
+		return nil
+	}
 
-	for key, s := range s.Properties {
-		switch s.Type {
-		case "array":
-			if len(s.Items) > 0 {
-				j[key] = []interface{}{s.Items[0].ExampleInterface()}
-			}
-		case "object":
-			j[key] = s.ExampleInterface()
-		default:
-			if s.Type == dummyType {
-				e := s.Example.(string)
-				if a, ok := allData[baseResourceName(e)]; ok {
-					j[key] = a.ExampleInterface()
-				}
-			} else {
-				example := s.Example
-				if example == "" {
-					example = s.Properties[key].Example
-				}
-				j[key] = example
-			}
+	if s.Example != nil {
+		if example := fmt.Sprintf("%v", s.Example); example != "" {
+			return s.Example
+		}
+	}
+
+	if s.Ref != "" {
+		if refs := s.resolveReference(s.Id, s.Ref); refs != nil {
+			return refs.ExampleInterface()
+		}
+	}
+
+	if s.Type == "array" {
+		return []interface{}{s.Items[0].ExampleInterface()}
+	}
+
+	j := map[string]interface{}{}
+	for key, property := range s.Properties {
+		if property.Ref != "" {
+			refs := s.resolveReference(s.Id, property.Ref)
+			j[key] = refs.ExampleInterface()
+		} else {
+			j[key] = property.Example
 		}
 	}
 	return j
 }
 
 func (s *Schema) ExampleGetData() []string {
-	params := s.ExampleInterface()
+	p := s.ExampleInterface()
+	params, ok := p.(map[string]interface{})
+	if !ok {
+		return []string{}
+	}
 	val := url.Values{}
 	for k, v := range params {
 		val.Set(k, fmt.Sprintf("%v", v))
@@ -338,6 +316,21 @@ func (s *Schema) ExampleGetData() []string {
 	return strings.Split(e, "&")
 }
 
-func (s *Schema) ToJSON() ([]byte, error) {
-	return json.MarshalIndent(s.data, "", " ")
+func (s *Schema) appendRefPath(path ...string) string {
+	paths := []string{s.CurrentRef}
+	paths = append(paths, path...)
+
+	return strings.Join(paths, "/")
+}
+
+type LinkDescription struct {
+	Href         string
+	Rel          string
+	Title        string
+	Description  string
+	MediaType    string
+	Method       string
+	EncType      string
+	Schema       *Schema
+	TargetSchema *Schema
 }

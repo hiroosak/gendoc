@@ -1,11 +1,15 @@
 package schema
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/ghodss/yaml"
 )
 
 func String(target interface{}, key string) string {
@@ -109,4 +113,34 @@ func resourceName(name string) string {
 	base := path.Base(name)
 	e := filepath.Ext(base)
 	return base[0 : len(base)-len(e)]
+}
+
+func YamlFileToJson(path string, info os.FileInfo) ([]byte, error) {
+	isJSON := isExtJSONFile(info)
+	isYAML := isExtYaml(info)
+
+	if !isJSON && !isYAML {
+		return nil, fmt.Errorf("%v is not support file format", info.Name())
+	}
+
+	rs, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var d map[string]interface{}
+	switch {
+	case isJSON:
+		if err := json.Unmarshal(rs, &d); err != nil {
+			return nil, err
+		}
+	case isYAML:
+		if err := yaml.Unmarshal(rs, &d); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("%v is not support file format", info.Name())
+	}
+
+	return json.MarshalIndent(d, "", "  ")
 }

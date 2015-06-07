@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/hiroosak/gendoc/schema"
 )
 
-func validSchemaTree(src string) error {
+func ValidSchemaTree(src string) error {
 	if err := isDir(src); err != nil {
 		return fmt.Errorf("src is not directory")
 	}
@@ -17,12 +17,7 @@ func validSchemaTree(src string) error {
 		if info.IsDir() {
 			return nil
 		}
-		s, err := schema.NewSchemaFromFile(path, info)
-		if err != nil {
-			return err
-		}
-
-		if js, err := s.ToJSON(); err != nil {
+		if js, err := schema.YamlFileToJson(path, info); err != nil {
 			return nil
 		} else {
 			return schema.ValidSchema(js)
