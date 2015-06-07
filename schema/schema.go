@@ -29,6 +29,20 @@ func (r *refPool) Set(refStr string, s *Schema) {
 	r.refMap[refStr] = s
 }
 
+func (r *refPool) Keys() []string {
+	rs := make([]string, r.Len())
+	var i int
+	for k, _ := range r.refMap {
+		rs[i] = k
+		i += 1
+	}
+	return rs
+}
+
+func (r *refPool) Len() int {
+	return len(r.refMap)
+}
+
 // +gen slice:"GroupBy[string],Where"
 type Schema struct {
 	Id          string
@@ -207,6 +221,10 @@ func (s *Schema) parseItems(data interface{}) error {
 }
 
 func (s *Schema) resolveReference(idStr, refStr string) *Schema {
+	if n := strings.Index(refStr, "."); n > 0 {
+		idStr = refStr[0:n]
+		refStr = "#"
+	}
 	if schema, ok := schemas[idStr]; !ok {
 		return s.refPool.Get(refStr)
 	} else {
@@ -223,16 +241,25 @@ func (s *Schema) Alias() *Schema {
 
 func (s *Schema) ResolveType() string {
 	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
 	return schema.Type
 }
 
 func (s *Schema) ResolveFormat() string {
 	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
 	return schema.Format
 }
 
 func (s *Schema) ResolveDescription() string {
 	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
 	return schema.Description
 }
 
@@ -243,15 +270,18 @@ func (s *Schema) ExampleJSON() string {
 }
 
 func (s *Schema) ExampleInterface() interface{} {
-	j := map[string]interface{}{}
+	if s == nil {
+		return nil
+	}
 
-	if example := fmt.Sprintf("%v", s.Example); example != "" {
-		return s.Example
+	if s.Example != nil {
+		if example := fmt.Sprintf("%v", s.Example); example != "" {
+			return s.Example
+		}
 	}
 
 	if s.Ref != "" {
-		refs := s.resolveReference(s.Id, s.Ref)
-		if refs != nil {
+		if refs := s.resolveReference(s.Id, s.Ref); refs != nil {
 			return refs.ExampleInterface()
 		}
 	}
@@ -260,29 +290,10 @@ func (s *Schema) ExampleInterface() interface{} {
 		return []interface{}{s.Items[0].ExampleInterface()}
 	}
 
+	j := map[string]interface{}{}
 	for key, property := range s.Properties {
-		if property.Ref != "" {
-			refs := s.resolveReference(s.Id, property.Ref)
-			j[key] = refs.ExampleInterface()
-			continue
-		}
-
-		switch property.Type {
-		case "array":
-			if len(property.Items) > 0 {
-				j[key] = []interface{}{property.Items[0].ExampleInterface()}
-			}
-		case "object":
-			j[key] = property.ExampleInterface()
-		default:
-			example := property.Example
-			if example == "" {
-				if _, ok := property.Properties[key]; ok {
-					example = property.Properties[key].Example
-				}
-			}
-			j[key] = example
-		}
+		refs := s.resolveReference(s.Id, property.Ref)
+		j[key] = refs.ExampleInterface()
 	}
 	return j
 }
