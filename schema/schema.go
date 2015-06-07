@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -38,7 +39,7 @@ type Schema struct {
 	Properties  map[string]*Schema
 
 	Items []*Schema
-	Links []LinkDescription
+	Links []*LinkDescription
 
 	Ref string
 
@@ -89,6 +90,7 @@ func NewSchema(data map[string]interface{}, refStr string, parent *Schema) (*Sch
 	s.Properties = make(map[string]*Schema, 0)
 	s.Definitions = make(map[string]*Schema, 0)
 	s.Items = make([]*Schema, 0)
+	s.Links = make([]*LinkDescription, 0)
 
 	if idStr != "" {
 		schemas[idStr] = s
@@ -104,6 +106,7 @@ func NewSchema(data map[string]interface{}, refStr string, parent *Schema) (*Sch
 
 	s.parseProperties(data["properties"])
 	s.parseDefinitions(data["definitions"])
+	s.parseLinks(data["links"])
 	s.parseItems(data["items"])
 
 	s.refPool.Set(refStr, s)
@@ -137,6 +140,48 @@ func (s *Schema) parseDefinitions(data interface{}) {
 		}
 		s.Definitions[key] = def
 	}
+}
+
+func (s *Schema) parseLinks(data interface{}) error {
+	if data == nil {
+		return nil
+	}
+
+	linkLists, ok := data.([]interface{})
+	if !ok {
+		return errors.New("parse failed links")
+	}
+
+	for i, l := range linkLists {
+		link, ok := l.(map[string]interface{})
+		if !ok {
+			panic("err")
+			return errors.New("parse failed links")
+		}
+		var schema *Schema
+		if v, ok := link["schema"]; ok {
+			schema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "schema"), s)
+		}
+		var targetSchema *Schema
+		if v, ok := link["targetSchema"]; ok {
+			targetSchema, _ = NewSchemaFromInterface(v, s.appendRefPath(fmt.Sprintf("links[%v]", i), "targetSchema"), s)
+		}
+
+		l := &LinkDescription{
+			Title:        String(link, "title"),
+			Description:  String(link, "description"),
+			Href:         String(link, "href"),
+			Method:       String(link, "method"),
+			Rel:          String(link, "rel"),
+			EncType:      String(link, "encType"),
+			Schema:       schema,
+			TargetSchema: targetSchema,
+		}
+
+		s.Links = append(s.Links, l)
+	}
+
+	return nil
 }
 
 func (s *Schema) parseItems(data interface{}) error {
@@ -184,7 +229,6 @@ func (s *Schema) ExampleInterface() interface{} {
 	}
 
 	for key, property := range s.Properties {
-
 		if property.Ref != "" {
 			refs := s.resolveReference(s.Id, property.Ref)
 			j[key] = refs.ExampleInterface()
@@ -211,6 +255,20 @@ func (s *Schema) ExampleInterface() interface{} {
 	return j
 }
 
+func (s *Schema) ExampleGetData() []string {
+	p := s.ExampleInterface()
+	params, ok := p.(map[string]interface{})
+	if !ok {
+		return []string{}
+	}
+	val := url.Values{}
+	for k, v := range params {
+		val.Set(k, fmt.Sprintf("%v", v))
+	}
+	e := val.Encode()
+	return strings.Split(e, "&")
+}
+
 func (s *Schema) appendRefPath(path ...string) string {
 	paths := []string{s.CurrentRef}
 	paths = append(paths, path...)
@@ -223,9 +281,9 @@ type LinkDescription struct {
 	Rel          string
 	Title        string
 	Description  string
-	TargetSchema Schema
 	MediaType    string
 	Method       string
 	EncType      string
-	Schema       Schema
+	Schema       *Schema
+	TargetSchema *Schema
 }

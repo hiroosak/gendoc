@@ -167,6 +167,23 @@ func TestAppendRefPath(t *testing.T) {
 	}
 }
 
+func TestExampleGetData(t *testing.T) {
+	accepts := []string{
+		"age=16",
+		"id=1",
+		"name=Mike",
+	}
+
+	s, _ := NewSchemaFromBytes([]byte(userJSON), "", nil)
+	datas := s.ExampleGetData()
+
+	for k, v := range datas {
+		if v != accepts[k] {
+			t.Errorf("accept %v, but TV", v, accepts[k])
+		}
+	}
+}
+
 const userJSON = `{
   "$schema": "http://json-schema.org/draft-04/hyper-schema",
   "definitions": {
