@@ -235,7 +235,7 @@ func parseReference(idStr, refStr string) (string, string) {
 		if h := strings.Index(refStr, "#"); h > 0 {
 			refStr = refStr[h:len(refStr)]
 		} else {
-			refStr = ""
+			refStr = "#"
 		}
 	}
 	return idStr, refStr

@@ -191,7 +191,7 @@ func TestParseReference(t *testing.T) {
 		DstRef string
 	}
 	res := []t1{
-		t1{"", "user.json", "user", ""},
+		t1{"", "user.json", "user", "#"},
 		t1{"", "user.json#definitions/id", "user", "#definitions/id"},
 		t1{"user", "", "user", ""},
 	}
