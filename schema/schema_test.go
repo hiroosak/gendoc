@@ -183,6 +183,29 @@ func TestExampleGetData(t *testing.T) {
 	}
 }
 
+func TestParseReference(t *testing.T) {
+	type t1 struct {
+		SrcId  string
+		SrcRef string
+		DstId  string
+		DstRef string
+	}
+	res := []t1{
+		t1{"", "user.json", "user", ""},
+		t1{"", "user.json#definitions/id", "user", "#definitions/id"},
+		t1{"user", "", "user", ""},
+	}
+	for _, r := range res {
+		id, ref := parseReference(r.SrcId, r.SrcRef)
+		if id != r.DstId {
+			t.Errorf("%v: id is expected %v. but %v", r, r.DstId, id)
+		}
+		if ref != r.DstRef {
+			t.Errorf("%v: ref is expected [%v]. but [%v]", r, r.DstRef, ref)
+		}
+	}
+}
+
 const userJSON = `{
   "$schema": "http://json-schema.org/draft-04/hyper-schema",
   "definitions": {

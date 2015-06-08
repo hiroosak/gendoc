@@ -221,15 +221,24 @@ func (s *Schema) parseItems(data interface{}) error {
 }
 
 func (s *Schema) resolveReference(idStr, refStr string) *Schema {
-	if n := strings.Index(refStr, "."); n > 0 {
-		idStr = refStr[0:n]
-		refStr = "#"
-	}
+	idStr, refStr = parseReference(idStr, refStr)
 	if schema, ok := schemas[idStr]; !ok {
 		return s.refPool.Get(refStr)
 	} else {
 		return schema.refPool.Get(refStr)
 	}
+}
+
+func parseReference(idStr, refStr string) (string, string) {
+	if n := strings.Index(refStr, "."); n > 0 {
+		idStr = refStr[0:n]
+		if h := strings.Index(refStr, "#"); h > 0 {
+			refStr = refStr[h:len(refStr)]
+		} else {
+			refStr = ""
+		}
+	}
+	return idStr, refStr
 }
 
 func (s *Schema) Alias() *Schema {
