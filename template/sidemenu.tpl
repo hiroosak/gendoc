@@ -6,7 +6,13 @@
   <li>
     <ul class="nav nav-sidebar-submenu">
       {{ range .Links }}
-        <li><a href="#{{ .Method }}-{{ .Href }}">{{ .Method }} {{ .Href }}</a></li>
+        <li><a href="#{{ .Method }}-{{ .Href }}">
+            {{ if eq .Rel "notImplemented" }}
+            <span class="label label-warning">Not Implemented</span>
+            {{ end }}
+            {{ .Title }}
+          </a>
+        </li>
       {{ end }}
     </ul>
   </li>

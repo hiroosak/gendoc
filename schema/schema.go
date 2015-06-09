@@ -305,7 +305,7 @@ func (s *Schema) ExampleInterface() interface{} {
 			refs := s.resolveReference(s.Id, property.Ref)
 			j[key] = refs.ExampleInterface()
 		} else {
-			j[key] = property.Example
+			j[key] = property.ExampleInterface()
 		}
 	}
 	return j
