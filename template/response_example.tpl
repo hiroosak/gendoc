@@ -10,6 +10,8 @@
 <pre><code>HTTP/1.1 204 No Content</code></pre>
 {{ else if eq .Rel "destroy" }}
 <pre><code>HTTP/1.1 204 No Content</code></pre>
+{{ else if eq .Rel "notImpremented" }}
+<pre><code>HTTP/1.1 501 Not Implemented</code></pre>
 {{ else }}
 <pre><code>HTTP/1.1 200 OK</code></pre>
 <pre><code class="json">{{ .TargetSchema.ExampleJSON }}</code></pre> 

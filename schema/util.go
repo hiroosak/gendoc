@@ -41,9 +41,34 @@ func String(target interface{}, key string) string {
 	return res
 }
 
+func Bool(target interface{}, key string) bool {
+	d, ok := target.(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	v, ok := d[key]
+	if !ok {
+		return false
+	}
+
+	var res bool
+
+	switch v.(type) {
+	case string:
+		res = v.(string) == "true"
+	case bool:
+		res = v.(bool)
+	}
+	return res
+}
+
 func Interface(target interface{}, key string, typeStr string) interface{} {
-	if typeStr == "string" {
+	switch typeStr {
+	case "string":
 		return String(target, key)
+	case "boolean":
+		return Bool(target, key)
 	}
 
 	var i interface{}
