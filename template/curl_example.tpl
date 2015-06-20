@@ -6,7 +6,7 @@
 {{ $encType := .EncType }}
 
 {{ if eq .Method "GET" }}
-<pre><code class="bash">curl {{ baseURL }}{{ .Href }} -X GET{{ range $hs }} \
+<pre><code class="bash">curl {{ baseURL }}{{ .Href }} -G -X GET{{ range $hs }} \
        -H "{{ . }}"{{ end }}{{ if eq $encType "application/json" }} \
        -H "Content-Type: application/json" \
        -d '{{ .Schema.ExampleJSON }}'{{else if eq $encType "application/x-www-form-urlencoded" }} \
