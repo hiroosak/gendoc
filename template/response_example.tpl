@@ -6,6 +6,8 @@
 <pre><code>HTTP/1.1 201 Created</code></pre>
 {{ else if eq .Rel "empty" }}
 <pre><code>HTTP/1.1 202 Accepted</code></pre>
+{{ else if eq .Rel "update" }}
+<pre><code>HTTP/1.1 204 No Content</code></pre>
 {{ else if eq .Rel "destroy" }}
 <pre><code>HTTP/1.1 204 No Content</code></pre>
 {{ else }}
