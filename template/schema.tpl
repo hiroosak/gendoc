@@ -22,7 +22,7 @@
           <tr>
             <td></td>
             <td>{{ $n }}</td>
-            <td>{{ $d.ResolveType }}</td>
+            <td>{{ range $i, $type := $d.ResolveType }}{{$type}}<br/>{{end}}</td>
             <td>{{ $d.ResolveFormat }}</td>
             <td>{{ $d.ResolveDescription }}</td>
             <td>

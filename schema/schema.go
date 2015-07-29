@@ -48,7 +48,7 @@ type Schema struct {
 	Id          string
 	Title       string
 	Description string
-	Type        string
+	Type        []string
 	Format      string
 	Example     interface{}
 	Definitions map[string]*Schema
@@ -99,7 +99,7 @@ func NewSchema(data map[string]interface{}, refStr string, parent *Schema) (*Sch
 		refStr = "#"
 	}
 	idStr := String(data, "id")
-	typeStr := String(data, "type")
+	typeStr := StringSlice(data, "type")
 	s := &Schema{
 		Type:        typeStr,
 		Id:          String(data, "id"),
@@ -248,10 +248,10 @@ func (s *Schema) Alias() *Schema {
 	return s.resolveReference(s.Id, s.Ref)
 }
 
-func (s *Schema) ResolveType() string {
+func (s *Schema) ResolveType() []string {
 	schema := s.Alias()
 	if schema == nil {
-		return ""
+		return []string{}
 	}
 	return schema.Type
 }
@@ -295,7 +295,7 @@ func (s *Schema) ExampleInterface() interface{} {
 		}
 	}
 
-	if s.Type == "array" {
+	if len(s.Type) != 0 && s.Type[0] == "array" {
 		return []interface{}{s.Items[0].ExampleInterface()}
 	}
 
