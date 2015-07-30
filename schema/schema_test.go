@@ -32,16 +32,16 @@ var t1 *Schema = &Schema{
 	Definitions: map[string]*Schema{
 		"username": &Schema{
 			Description: "user's name",
-			Type:        "string",
+			Type:        []string{"string"},
 			Example:     "Ken",
 		},
 		"age": &Schema{
 			Description: "user's old",
-			Type:        "integer",
+			Type:        []string{"integer"},
 			Example:     18,
 		},
 	},
-	Type: "array",
+	Type: []string{"array"},
 	Items: []*Schema{
 		&Schema{
 			Ref: "#",

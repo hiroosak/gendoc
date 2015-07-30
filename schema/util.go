@@ -41,8 +41,38 @@ func String(target interface{}, key string) string {
 	return res
 }
 
-func Interface(target interface{}, key string, typeStr string) interface{} {
-	if typeStr == "string" {
+func StringSlice(target interface{}, key string) []string {
+	d, ok := target.(map[string]interface{})
+	if !ok {
+		return []string{}
+	}
+
+	v, ok := d[key]
+	if !ok {
+		return []string{}
+	}
+
+	switch v.(type) {
+	case string:
+		return []string{v.(string)}
+	case float64:
+		return []string{fmt.Sprintf("%v", v)}
+	case []interface{}:
+		res := []string{}
+		rs := v.([]interface{})
+		for _, r := range rs {
+			if vv, ok := r.(string); ok {
+				res = append(res, vv)
+			}
+		}
+		return res
+	}
+	return []string{}
+}
+
+func Interface(target interface{}, key string, typeStr []string) interface{} {
+
+	if len(typeStr) != 0 && typeStr[0] == "string" {
 		return String(target, key)
 	}
 
