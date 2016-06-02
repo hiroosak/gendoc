@@ -7,7 +7,7 @@ import (
 
 	"github.com/hiroosak/gendoc/commands"
 
-	"github.com/codegangsta/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func main() {
@@ -66,33 +66,36 @@ func main() {
 	app.Run(os.Args)
 }
 
-func scaffoldAction(c *cli.Context) {
+func scaffoldAction(c *cli.Context) error {
 	commands.Scaffold(c.Args().First())
+	return nil
 }
 
-func genAction(c *cli.Context) {
+func genAction(c *cli.Context) error {
 	src := c.String("src")
 	dst := c.String("dst")
 	if err := commands.GenerateJSON(src, dst); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
 		cli.ShowAppHelp(c)
-	} else {
-		fmt.Println("ok.")
+		return err
 	}
+	fmt.Println("ok.")
+	return nil
 }
 
-func validAction(c *cli.Context) {
+func validAction(c *cli.Context) error {
 	src := c.String("src")
 	if err := commands.ValidSchemaTree(src); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
-	} else {
-		fmt.Println("ok.")
+		return err
 	}
+	fmt.Println("ok.")
+	return nil
 }
 
-func docAction(c *cli.Context) {
+func docAction(c *cli.Context) error {
 	src := c.String("src")
 	meta := c.String("meta")
 	template := c.String("template")
@@ -102,7 +105,9 @@ func docAction(c *cli.Context) {
 		fmt.Println(err)
 		fmt.Println("")
 		cli.ShowAppHelp(c)
+		return err
 	}
+	return nil
 }
 
 func getGoPath() string {
