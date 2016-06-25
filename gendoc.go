@@ -62,6 +62,12 @@ func main() {
 			Action: genAction,
 			Flags:  []cli.Flag{srcFlag, dstFlag},
 		},
+		cli.Command{
+			Name:   "swagger",
+			Usage:  "Generate Swagger JSON",
+			Action: genSwaggerAction,
+			Flags:  []cli.Flag{srcFlag, dstFlag},
+		},
 	}
 	app.Run(os.Args)
 }
@@ -102,6 +108,19 @@ func docAction(c *cli.Context) error {
 	overview := c.String("overview")
 
 	if err := commands.GenerateHTML(src, meta, overview, template); err != nil {
+		fmt.Println(err)
+		fmt.Println("")
+		cli.ShowAppHelp(c)
+		return err
+	}
+	return nil
+}
+
+func genSwaggerAction(c *cli.Context) error {
+	src := c.String("src")
+	dst := c.String("dst")
+
+	if err := commands.GenerateSwaggerJSON(src, dst); err != nil {
 		fmt.Println(err)
 		fmt.Println("")
 		cli.ShowAppHelp(c)

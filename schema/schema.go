@@ -45,21 +45,21 @@ func (r *refPool) Len() int {
 
 // +gen slice:"GroupBy[string],Where"
 type Schema struct {
-	Id          string
-	Title       string
-	Description string
-	Type        []string
-	Format      string
-	Example     interface{}
-	Definitions map[string]*Schema
-	Properties  map[string]*Schema
+	Id          string             `yaml:",omitempty" json:"id"`
+	Title       string             `yaml:"title" json:"title"`
+	Description string             `yaml:"description" json:"description"`
+	Type        []string           `yaml:"type" json:"type"`
+	Format      string             `yaml:"format" json:"format"`
+	Example     interface{}        `yaml:"example,omitempty" json:"example,omitempty"`
+	Definitions map[string]*Schema `yaml:"definitions,omitempty" json:"definitions,omitempty"`
+	Properties  map[string]*Schema `yaml:"properties,omitempty" json:"properties,omitempty"`
 
-	Items []*Schema
-	Links []*LinkDescription
+	Items []*Schema          `yaml:"items,omitempty" json:"items,omitempty"`
+	Links []*LinkDescription `yaml:"links,omitempty" json:"links,omitempty"`
 
-	Ref string
+	Ref string `yaml:"$ref,omitempty" json:"$ref,omitempty"`
 
-	CurrentRef string
+	CurrentRef string `yaml:",omitempty" json:",omitempty"`
 	refPool    *refPool
 	parent     *Schema
 }
@@ -256,6 +256,14 @@ func (s *Schema) ResolveType() []string {
 	return schema.Type
 }
 
+func (s *Schema) ResolveTitle() string {
+	schema := s.Alias()
+	if schema == nil {
+		return ""
+	}
+	return schema.Title
+}
+
 func (s *Schema) ResolveFormat() string {
 	schema := s.Alias()
 	if schema == nil {
@@ -333,13 +341,13 @@ func (s *Schema) appendRefPath(path ...string) string {
 }
 
 type LinkDescription struct {
-	Href         string
-	Rel          string
-	Title        string
-	Description  string
-	MediaType    string
-	Method       string
-	EncType      string
-	Schema       *Schema
-	TargetSchema *Schema
+	Href         string  `json:"href"`
+	Rel          string  `json:"rel"`
+	Title        string  `json:"title"`
+	Description  string  `json:"description"`
+	MediaType    string  `json:"mediaType"`
+	Method       string  `json:"method"`
+	EncType      string  `json:"encType"`
+	Schema       *Schema `json:"schema"`
+	TargetSchema *Schema `json:"targetSchema"`
 }
